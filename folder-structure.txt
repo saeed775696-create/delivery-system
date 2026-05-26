@@ -1,0 +1,232 @@
+integrated-delivery-system-plan
+├── PROJECT_MAP.md
+├── drizzle
+│   ├── 0000_smooth_speedball.sql
+│   └── meta
+│       ├── 0000_snapshot.json
+│       └── _journal.json
+├── drizzle.config.json
+├── eslint.config.mjs
+├── folder-structure.txt
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── project_structure.txt
+├── public
+│   └── uploads
+├── scripts
+│   ├── migrate.ts
+│   └── seed.ts
+├── socket-server.js
+├── src
+│   ├── app
+│   │   ├── (auth)
+│   │   │   ├── layout.tsx
+│   │   │   ├── login
+│   │   │   │   └── page.tsx
+│   │   │   ├── logout
+│   │   │   │   └── route.ts
+│   │   │   └── register
+│   │   │       └── page.tsx
+│   │   ├── admin
+│   │   │   ├── drivers
+│   │   │   │   └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── orders
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── settings
+│   │   │   │   └── page.tsx
+│   │   │   ├── stores
+│   │   │   │   └── page.tsx
+│   │   │   └── users
+│   │   │       └── page.tsx
+│   │   ├── api
+│   │   │   ├── admin
+│   │   │   │   ├── stats
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── users
+│   │   │   │       ├── delete
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── route.ts
+│   │   │   │       ├── toggle-status
+│   │   │   │       │   └── route.ts
+│   │   │   │       └── update
+│   │   │   │           └── route.ts
+│   │   │   ├── auth
+│   │   │   │   ├── login
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── logout
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── me
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── register
+│   │   │   │       └── route.ts
+│   │   │   ├── drivers
+│   │   │   │   ├── nearby
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── orders
+│   │   │   │   │   ├── accept
+│   │   │   │   │   │   └── route.tsx
+│   │   │   │   │   ├── available
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   ├── route.ts
+│   │   │   │   │   └── status
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── route.ts
+│   │   │   │   └── tracking
+│   │   │   │       └── route.ts
+│   │   │   ├── health
+│   │   │   │   └── route.ts
+│   │   │   ├── notifications
+│   │   │   │   └── route.ts
+│   │   │   ├── orders
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── accept
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── products
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── socket
+│   │   │   │   └── route.ts
+│   │   │   ├── stores
+│   │   │   │   ├── [id]
+│   │   │   │   │   ├── products
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── upload
+│   │   │   │   └── route.ts
+│   │   │   └── vendor
+│   │   │       └── store
+│   │   │           ├── products
+│   │   │           │   ├── route.ts
+│   │   │           │   └── toggle
+│   │   │           │       └── route.ts
+│   │   │           └── route.ts
+│   │   ├── cart
+│   │   │   └── page.tsx
+│   │   ├── driver
+│   │   │   ├── earnings
+│   │   │   │   └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── orders
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── profile
+│   │   │   │   └── page.tsx
+│   │   │   └── tracking
+│   │   │       └── page.tsx
+│   │   ├── error.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── loading.tsx
+│   │   ├── logout
+│   │   │   └── page.tsx
+│   │   ├── not-found.tsx
+│   │   ├── orders
+│   │   │   └── [id]
+│   │   │       └── page.tsx
+│   │   ├── page.tsx
+│   │   ├── providers.tsx
+│   │   ├── stores
+│   │   │   ├── [id]
+│   │   │   │   ├── AddToCartButton.tsx
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   └── vendor
+│   │       ├── VendorForm.tsx
+│   │       ├── layout.tsx
+│   │       ├── orders
+│   │       │   ├── [id]
+│   │       │   │   └── page.tsx
+│   │       │   └── page.tsx
+│   │       ├── page.tsx
+│   │       ├── products
+│   │       │   ├── [id]
+│   │       │   │   ├── edit
+│   │       │   │   │   └── page.tsx
+│   │       │   │   └── page.tsx
+│   │       │   ├── new
+│   │       │   │   └── page.tsx
+│   │       │   └── page.tsx
+│   │       └── settings
+│   │           └── page.tsx
+│   ├── components
+│   │   ├── admin
+│   │   │   ├── EditUserModal.tsx
+│   │   │   └── ImageUpload.tsx
+│   │   ├── auth
+│   │   │   └── LogoutButton.tsx
+│   │   ├── dashboard
+│   │   │   ├── DashboardHeader.tsx
+│   │   │   ├── RecentOrders.tsx
+│   │   │   ├── RevenueChart.tsx
+│   │   │   └── StateCard.tsx
+│   │   ├── driver
+│   │   │   ├── AcceptOrderButton.tsx
+│   │   │   ├── DriverDashboard.tsx
+│   │   │   ├── DriverLocationTracker.tsx
+│   │   │   ├── ToggleAvailabilityButton.tsx
+│   │   │   └── UpdateOrderStatusButton.tsx
+│   │   ├── forms
+│   │   │   ├── CheckoutForm.tsx
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── ProductForm.tsx
+│   │   │   ├── RegisterForm.tsx
+│   │   │   └── StoreForm.tsx
+│   │   ├── maps
+│   │   │   └── DriverLiveMap.tsx
+│   │   ├── ui
+│   │   │   ├── Badge.tsx
+│   │   │   ├── Button.tsx
+│   │   │   ├── Card.tsx
+│   │   │   └── Input.tsx
+│   │   └── vendor
+│   │       ├── ToggleStoreButton.tsx
+│   │       ├── VendorOrdersList.tsx
+│   │       ├── VendorProdutsTable.tsx
+│   │       └── VendorSidebar.tsx
+│   ├── db
+│   │   ├── index.ts
+│   │   └── schema.ts
+│   ├── hooks
+│   │   ├── useAuth.ts
+│   │   ├── useCart.tsx
+│   │   ├── useDebounce.ts
+│   │   ├── useDriverLocation.ts
+│   │   ├── useDriverOrders.ts
+│   │   └── useOrders.ts
+│   ├── lib
+│   │   ├── api-auth.ts
+│   │   ├── auth.ts
+│   │   ├── events.ts
+│   │   ├── order.constants.ts
+│   │   ├── order.events.ts
+│   │   ├── order.state.ts
+│   │   ├── permissions.ts
+│   │   ├── require-role.ts
+│   │   ├── socket.ts
+│   │   ├── utils.ts
+│   │   ├── validations
+│   │   │   ├── auth.validation.ts
+│   │   │   ├── driver.validation.ts
+│   │   │   └── order.validation.ts
+│   │   └── validations.ts
+│   ├── proxy.ts
+│   └── services
+│       ├── auth.service.ts
+│       ├── driver.service.ts
+│       ├── order.service.ts
+│       ├── product.service.ts
+│       └── store.service.ts
+└── tsconfig.json

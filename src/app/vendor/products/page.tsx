@@ -2,59 +2,90 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Card from "@/components/ui/Card";
 import Link from "next/link";
+import Image from "next/image";
+
+import Card from "@/components/ui/Card";
+
 import {
   Package,
   Plus,
   Edit,
+  Trash2,
   ToggleLeft,
   ToggleRight,
+  MoreVertical,
 } from "lucide-react";
 
 type Product = {
   id: string;
   nameAr: string;
-  price: string;
-  imageUrl?: string;
-  category?: string;
+  price: string | number;
+  imageUrl?: string | null;
+  category?: string | null;
   isAvailable: boolean;
+};
+
+type Props = {
+  store?: any;
+  initialProducts?: Product[];
 };
 
 export default function VendorProductsClient({
   store,
-  initialProducts,
-}: {
-  store: any;
-  initialProducts: Product[];
-}) {
+  initialProducts = [],
+}: Props) {
   const router = useRouter();
 
-  const [products, setProducts] = useState(initialProducts);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>(
+    initialProducts ?? []
+  );
 
-  // 🔥 Toggle Product
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+
+  // TOGGLE
   const toggleProduct = async (id: string) => {
     try {
       setLoadingId(id);
 
-      const res = await fetch("/api/vendor/products/toggle", {
+      await fetch("/api/vendor/products/toggle", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: id }),
       });
 
-      if (!res.ok) throw new Error("Failed");
-
-      const updated = products.map((p) =>
-        p.id === id
-          ? { ...p, isAvailable: !p.isAvailable }
-          : p
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, isAvailable: !p.isAvailable } : p
+        )
       );
 
-      setProducts(updated);
       router.refresh();
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  // DELETE
+  const deleteProduct = async (id: string) => {
+    const confirmDelete = confirm("هل أنت متأكد من حذف المنتج؟");
+    if (!confirmDelete) return;
+
+    try {
+      setLoadingId(id);
+
+      await fetch(`/api/vendor/products/${id}`, {
+        method: "DELETE",
+      });
+
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+
+      router.refresh();
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoadingId(null);
     }
@@ -67,7 +98,7 @@ export default function VendorProductsClient({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">
-            المنتجات
+            إدارة المنتجات
           </h1>
           <p className="text-slate-500">
             {products.length} منتج
@@ -76,7 +107,7 @@ export default function VendorProductsClient({
 
         <Link
           href="/vendor/products/new"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition"
         >
           <Plus className="w-5 h-5" />
           إضافة منتج
@@ -90,21 +121,75 @@ export default function VendorProductsClient({
           {products.map((product) => (
             <Card key={product.id} className="relative">
 
-              {/* IMAGE + INFO */}
-              <div className="flex gap-4">
+              {/* TOP MENU */}
+              <div className="absolute top-3 left-3">
+                <button
+                  onClick={() =>
+                    setMenuOpenId(
+                      menuOpenId === product.id ? null : product.id
+                    )
+                  }
+                  className="p-2 rounded-lg hover:bg-slate-100"
+                >
+                  <MoreVertical className="w-5 h-5 text-slate-600" />
+                </button>
 
-                <div className="w-20 h-20 bg-slate-100 rounded-xl flex items-center justify-center">
+                {menuOpenId === product.id && (
+                  <div className="absolute left-0 mt-2 w-36 bg-white shadow-lg border rounded-xl overflow-hidden z-10">
+
+                    <Link
+                      href={`/vendor/products/${product.id}/edit`}
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100"
+                    >
+                      <Edit className="w-4 h-4" />
+                      تعديل
+                    </Link>
+
+                    <button
+                      onClick={() => toggleProduct(product.id)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100"
+                    >
+                      {product.isAvailable ? (
+                        <>
+                          <ToggleRight className="w-4 h-4 text-green-600" />
+                          تعطيل
+                        </>
+                      ) : (
+                        <>
+                          <ToggleLeft className="w-4 h-4 text-red-600" />
+                          تفعيل
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => deleteProduct(product.id)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      حذف
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* IMAGE */}
+              <div className="flex gap-4">
+                <div className="w-20 h-20 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center">
                   {product.imageUrl ? (
-                    <img
+                    <Image
                       src={product.imageUrl}
-                      className="w-full h-full object-cover rounded-xl"
                       alt={product.nameAr}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <Package className="w-8 h-8 text-slate-300" />
                   )}
                 </div>
 
+                {/* INFO */}
                 <div className="flex-1">
                   <h3 className="font-semibold text-slate-800">
                     {product.nameAr}
@@ -114,13 +199,14 @@ export default function VendorProductsClient({
                     {product.price} ر.ي
                   </p>
 
-                  <div className="flex gap-2 mt-2">
-
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      product.isAvailable
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}>
+                  <div className="mt-2 flex gap-2 flex-wrap">
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        product.isAvailable
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {product.isAvailable ? "متاح" : "غير متاح"}
                     </span>
 
@@ -133,62 +219,50 @@ export default function VendorProductsClient({
                 </div>
               </div>
 
-              {/* ACTIONS */}
-              <div className="flex gap-2 mt-4 pt-4 border-t">
-
+              {/* QUICK ACTION */}
+              <div className="mt-4 pt-4 border-t flex gap-2">
                 <Link
                   href={`/vendor/products/${product.id}/edit`}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="flex-1 text-center py-2 text-sm rounded-lg hover:bg-slate-100"
                 >
-                  <Edit className="w-4 h-4" />
                   تعديل
                 </Link>
 
                 <button
                   onClick={() => toggleProduct(product.id)}
+                  className="flex-1 text-sm rounded-lg hover:bg-slate-100"
                   disabled={loadingId === product.id}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg"
                 >
-                  {loadingId === product.id ? (
-                    <span className="text-xs">جاري...</span>
-                  ) : product.isAvailable ? (
-                    <>
-                      <ToggleRight className="w-4 h-4 text-green-600" />
-                      متاح
-                    </>
-                  ) : (
-                    <>
-                      <ToggleLeft className="w-4 h-4 text-red-600" />
-                      غير متاح
-                    </>
-                  )}
+                  {loadingId === product.id
+                    ? "..."
+                    : product.isAvailable
+                    ? "إيقاف"
+                    : "تشغيل"}
                 </button>
-
               </div>
             </Card>
           ))}
-
         </div>
       ) : (
         <Card className="text-center py-12">
           <Package className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-          <h3 className="text-lg font-medium text-slate-700">
+
+          <h3 className="text-lg font-medium">
             لا توجد منتجات
           </h3>
-          <p className="text-slate-500 mb-6">
-            أضف منتجات لتبدأ البيع
+
+          <p className="text-slate-500 mb-4">
+            ابدأ بإضافة منتجاتك الآن
           </p>
 
           <Link
             href="/vendor/products/new"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl"
+            className="px-6 py-3 bg-emerald-600 text-white rounded-xl"
           >
-            <Plus className="w-5 h-5" />
             إضافة منتج
           </Link>
         </Card>
       )}
-
     </div>
   );
 }

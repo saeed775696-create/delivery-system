@@ -1,26 +1,20 @@
-import "server-only";
+import "dotenv/config";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+// التحقق من وجود الرابط
+const connectionString = process.env.DATABASE_URL;
 
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
+if (!connectionString) {
+  throw new Error("❌ DATABASE_URL is missing. تأكد من ملف .env.local");
 }
 
-const globalForDb = globalThis as typeof globalThis & {
-  __arenaNextJsPostgresqlPool?: Pool;
-};
+// إعداد الاتصال بـ Supabase (Pooler)
+const client = postgres(connectionString, {
+  prepare: false,
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
+});
 
-export const pool =
-  globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.__arenaNextJsPostgresqlPool = pool;
-}
-
-export const db = drizzle(pool);
+export const db = drizzle(client);

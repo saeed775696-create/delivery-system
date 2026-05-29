@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { db } from "../src/db";
+import { sql, eq } from "drizzle-orm";
 import {
   users,
   customerDetails,
@@ -11,28 +12,33 @@ import {
   settings,
 } from "../src/db/schema";
 import { hashPassword } from "../src/lib/auth";
-import { eq } from "drizzle-orm";
 
 async function seed() {
   console.log("🌱 Seeding database...");
 
-  // Clear existing data (safe order)
-  await db.delete(orderStatusLog);
-  await db.delete(orders);
-  await db.delete(products);
-  await db.delete(stores);
-  await db.delete(drivers);
-  await db.delete(customerDetails);
-  await db.delete(users);
-  await db.delete(settings);
+  // =========================
+  // RESET DATABASE (SAFE)
+  // =========================
+  await db.execute(sql`TRUNCATE TABLE 
+    order_status_log,
+    orders,
+    products,
+    stores,
+    drivers,
+    customer_details,
+    users,
+    settings
+    RESTART IDENTITY CASCADE;
+  `);
 
-  // Admin
-  const adminPassword = await hashPassword("admin123");
+  // =====================
+  // ADMIN
+  // =====================
   const [admin] = await db
     .insert(users)
     .values({
       phone: "777000000",
-      password: adminPassword,
+      password: await hashPassword("admin123"),
       fullName: "مدير النظام",
       role: "admin",
       isActive: true,
@@ -41,13 +47,14 @@ async function seed() {
 
   console.log("✅ Admin created");
 
-  // Customer
-  const customerPassword = await hashPassword("customer123");
+  // =====================
+  // CUSTOMER
+  // =====================
   const [customer] = await db
     .insert(users)
     .values({
       phone: "777111111",
-      password: customerPassword,
+      password: await hashPassword("customer123"),
       fullName: "أحمد محمد",
       role: "customer",
       isActive: true,
@@ -68,13 +75,14 @@ async function seed() {
     defaultAddressId: "1",
   });
 
-  // Driver
-  const driverPassword = await hashPassword("driver123");
+  // =====================
+  // DRIVER
+  // =====================
   const [driver] = await db
     .insert(users)
     .values({
       phone: "777222222",
-      password: driverPassword,
+      password: await hashPassword("driver123"),
       fullName: "خالد علي",
       role: "driver",
       isActive: true,
@@ -92,20 +100,23 @@ async function seed() {
     totalDeliveries: 0,
   });
 
-  // Vendor
-  const vendorPassword = await hashPassword("vendor123");
+  // =====================
+  // VENDOR
+  // =====================
   const [vendor] = await db
     .insert(users)
     .values({
       phone: "777333333",
-      password: vendorPassword,
+      password: await hashPassword("vendor123"),
       fullName: "مطعم البركة",
       role: "vendor",
       isActive: true,
     })
     .returning();
 
-  // Store
+  // =====================
+  // STORE
+  // =====================
   const [store] = await db
     .insert(stores)
     .values({
@@ -126,24 +137,53 @@ async function seed() {
     })
     .returning();
 
-  // Products
-  const storeProducts = [
-    { nameAr: "برجر لحم", price: "1500", preparationTime: 15 },
-    { nameAr: "برجر دجاج", price: "1200", preparationTime: 12 },
-    { nameAr: "بطاطس", price: "500", preparationTime: 8 },
-    { nameAr: "كولا", price: "300", preparationTime: 2 },
-    { nameAr: "عصير", price: "600", preparationTime: 5 },
-  ];
+  // =====================
+  // PRODUCTS
+  // =====================
+  const insertedProducts = await db
+    .insert(products)
+    .values([
+      {
+        storeId: store.id,
+        nameAr: "برجر لحم",
+        price: "1500",
+        preparationTime: 15,
+        isAvailable: true,
+      },
+      {
+        storeId: store.id,
+        nameAr: "برجر دجاج",
+        price: "1200",
+        preparationTime: 12,
+        isAvailable: true,
+      },
+      {
+        storeId: store.id,
+        nameAr: "بطاطس",
+        price: "500",
+        preparationTime: 8,
+        isAvailable: true,
+      },
+      {
+        storeId: store.id,
+        nameAr: "كولا",
+        price: "300",
+        preparationTime: 2,
+        isAvailable: true,
+      },
+      {
+        storeId: store.id,
+        nameAr: "عصير",
+        price: "600",
+        preparationTime: 5,
+        isAvailable: true,
+      },
+    ])
+    .returning();
 
-  for (const product of storeProducts) {
-    await db.insert(products).values({
-      storeId: store.id,
-      ...product,
-      isAvailable: true,
-    });
-  }
-
-  // Sample order
+  // =====================
+  // SAMPLE ORDER
+  // =====================
   const [sampleOrder] = await db
     .insert(orders)
     .values({
@@ -152,7 +192,12 @@ async function seed() {
       driverId: driver.id,
       status: "delivered",
       items: [
-        { productId: "1", name: "برجر", quantity: 2, price: 1500 },
+        {
+          productId: insertedProducts[0].id,
+          name: insertedProducts[0].nameAr,
+          quantity: 2,
+          price: Number(insertedProducts[0].price),
+        },
       ],
       subtotal: "3000",
       deliveryFee: "500",
@@ -173,7 +218,9 @@ async function seed() {
     { orderId: sampleOrder.id, status: "delivered", note: "تم التوصيل" },
   ]);
 
-  // ✅ FIXED: Drizzle updates
+  // =====================
+  // UPDATE STATS
+  // =====================
   await db
     .update(stores)
     .set({ totalOrders: 1 })
@@ -187,7 +234,9 @@ async function seed() {
     })
     .where(eq(drivers.userId, driver.id));
 
-  // Settings
+  // =====================
+  // SETTINGS
+  // =====================
   await db.insert(settings).values([
     { key: "delivery_fee", value: "500" },
     { key: "commission", value: "10" },
@@ -198,7 +247,7 @@ async function seed() {
 
 seed()
   .catch((e) => {
-    console.error(e);
+    console.error("❌ Seed error:", e);
     process.exit(1);
   })
   .then(() => process.exit(0));

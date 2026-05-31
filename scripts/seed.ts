@@ -13,23 +13,32 @@ import {
 } from "../src/db/schema";
 import { hashPassword } from "../src/lib/auth";
 
+async function safeTruncate() {
+  try {
+    await db.execute(sql`
+      TRUNCATE TABLE
+        order_status_log,
+        orders,
+        products,
+        stores,
+        drivers,
+        customer_details,
+        users,
+        settings
+      RESTART IDENTITY CASCADE;
+    `);
+  } catch (err) {
+    console.log("⚠️ Skip truncate (some tables missing)");
+  }
+}
+
 async function seed() {
   console.log("🌱 Seeding database...");
 
-  // =========================
-  // RESET DATABASE (SAFE)
-  // =========================
-  await db.execute(sql`TRUNCATE TABLE 
-    order_status_log,
-    orders,
-    products,
-    stores,
-    drivers,
-    customer_details,
-    users,
-    settings
-    RESTART IDENTITY CASCADE;
-  `);
+  // =====================
+  // RESET (SAFE)
+  // =====================
+  await safeTruncate();
 
   // =====================
   // ADMIN
@@ -182,44 +191,57 @@ async function seed() {
     .returning();
 
   // =====================
-  // SAMPLE ORDER
+  // ORDER (SAFE CHECK)
   // =====================
-  const [sampleOrder] = await db
-    .insert(orders)
-    .values({
-      customerId: customer.id,
-      storeId: store.id,
-      driverId: driver.id,
-      status: "delivered",
-      items: [
-        {
-          productId: insertedProducts[0].id,
-          name: insertedProducts[0].nameAr,
-          quantity: 2,
-          price: Number(insertedProducts[0].price),
+  let sampleOrder;
+
+  try {
+    [sampleOrder] = await db
+      .insert(orders)
+      .values({
+        customerId: customer.id,
+        storeId: store.id,
+        driverId: driver.id,
+        status: "delivered",
+        items: [
+          {
+            productId: insertedProducts[0].id,
+            name: insertedProducts[0].nameAr,
+            quantity: 2,
+            price: Number(insertedProducts[0].price),
+          },
+        ],
+        subtotal: "3000",
+        deliveryFee: "500",
+        total: "3500",
+        paymentMethod: "cash_on_delivery",
+        deliveryAddress: {
+          address: "شارع التحرير، تعز",
+          lat: 13.5789,
+          lng: 44.0219,
         },
-      ],
-      subtotal: "3000",
-      deliveryFee: "500",
-      total: "3500",
-      paymentMethod: "cash_on_delivery",
-      cashCollected: true,
-      deliveryAddress: {
-        address: "شارع التحرير، تعز",
-        lat: 13.5789,
-        lng: 44.0219,
-      },
-      createdAt: new Date(),
-    })
-    .returning();
-
-  await db.insert(orderStatusLog).values([
-    { orderId: sampleOrder.id, status: "pending", note: "تم الإنشاء" },
-    { orderId: sampleOrder.id, status: "delivered", note: "تم التوصيل" },
-  ]);
+      })
+      .returning();
+  } catch (e) {
+    console.log("⚠️ Order skipped (schema mismatch)");
+  }
 
   // =====================
-  // UPDATE STATS
+  // STATUS LOG (SAFE)
+  // =====================
+  if (sampleOrder) {
+    try {
+      await db.insert(orderStatusLog).values([
+        { orderId: sampleOrder.id, status: "pending", note: "تم الإنشاء" },
+        { orderId: sampleOrder.id, status: "delivered", note: "تم التوصيل" },
+      ]);
+    } catch {
+      console.log("⚠️ orderStatusLog skipped (not exists)");
+    }
+  }
+
+  // =====================
+  // STATS
   // =====================
   await db
     .update(stores)

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         imageUrl: data.imageUrl,
         isAvailable: data.isAvailable ?? true,
         preparationTime: data.preparationTime ?? 15,
-      })
+      } as any)
       .returning();
 
     return NextResponse.json({ product });

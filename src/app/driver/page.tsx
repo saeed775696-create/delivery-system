@@ -72,7 +72,7 @@ async function getDriverData(userId: string) {
 }
 
 export default async function DriverDashboard() {
- const session = await requireDriver();
+  const session = await requireDriver();
   const data = await getDriverData(session.userId);
 
   if (!data) {
@@ -107,8 +107,8 @@ export default async function DriverDashboard() {
           </div>
         </div>
         <ToggleAvailabilityButton
-  isAvailable={driver.isAvailable || false}
-       />
+          isAvailable={driver.isAvailable || false}
+        />
       </Card>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -191,9 +191,7 @@ export default async function DriverDashboard() {
                     طلب #{order.orderNumber}
                   </p>
                   <p className="text-sm text-slate-500">
-                    {order.deliveryAddress
-                      ? order.deliveryAddress.address?.slice(0, 30)
-                      : "عنوان غير محدد"}
+                    {(order.deliveryAddress as any)?.address?.slice(0, 30) || "عنوان غير محدد"}
                   </p>
                 </div>
                 <div className="text-left">

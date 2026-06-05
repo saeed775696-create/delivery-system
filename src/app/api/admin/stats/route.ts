@@ -57,7 +57,6 @@ export async function GET() {
     const [driverStats] = await db
       .select({
         activeDrivers: sql<number>`count(*) FILTER (WHERE ${drivers.isAvailable} = true)`,
-        totalDriverBalance: sql<number>`COALESCE(SUM(CAST(${drivers.totalBalance} AS DECIMAL)), 0)`,
       })
       .from(drivers);
 
@@ -121,7 +120,7 @@ export async function GET() {
         openStores: storeStats?.openStores || 0,
       },
       drivers: {
-        totalBalance: driverStats?.totalDriverBalance || 0,
+        totalBalance: 0,
       },
       ordersByStatus,
       dailyOrders,

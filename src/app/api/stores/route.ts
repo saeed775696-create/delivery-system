@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         phone: stores.phone,
         rating: stores.rating,
         totalOrders: stores.totalOrders,
-        workingHours: stores.workingHours,
+        // workingHours field removed: not present in DB schema
       })
       .from(stores)
       .where(eq(stores.isOpen, true))

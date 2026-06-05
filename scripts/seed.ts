@@ -8,7 +8,6 @@ import {
   stores,
   products,
   orders,
-  orderStatusLog,
   settings,
 } from "../src/db/schema";
 import { hashPassword } from "../src/lib/auth";
@@ -74,16 +73,11 @@ async function seed() {
     userId: customer.id,
     savedAddresses: [
       {
-        id: "1",
-        label: "المنزل",
-        address: "شارع التحرير، تعز",
-        lat: 13.5789,
-        lng: 44.0219,
+        // ... الخصائص الأخرى بدون defaultAddressId
       },
     ],
-    defaultAddressId: "1",
   });
-
+  
   // =====================
   // DRIVER
   // =====================
@@ -99,15 +93,11 @@ async function seed() {
     .returning();
 
   await db.insert(drivers).values({
-    userId: driver.id,
-    vehicleType: "motorcycle",
-    isAvailable: true,
-    currentLat: "13.5800",
-    currentLng: "44.0220",
-    totalBalance: "0",
-    ratingAvg: "5.0",
-    totalDeliveries: 0,
-  });
+  userId: driver.id,
+  vehicleType: "motorcycle",
+  isAvailable: true,
+  licenseNumber: "123456", // مثال (تأكد أن لديك قيمة أو احذفه إن كان غير موجود)
+});
 
   // =====================
   // VENDOR
@@ -139,7 +129,6 @@ async function seed() {
       addressDescription: "شارع جمال، مقابل المستشفى الجمهوري",
       commissionRate: "10",
       isOpen: true,
-      workingHours: { open: "08:00", close: "23:00", daysOff: [] },
       phone: "777333333",
       rating: "4.5",
       totalOrders: 0,
@@ -229,16 +218,7 @@ async function seed() {
   // =====================
   // STATUS LOG (SAFE)
   // =====================
-  if (sampleOrder) {
-    try {
-      await db.insert(orderStatusLog).values([
-        { orderId: sampleOrder.id, status: "pending", note: "تم الإنشاء" },
-        { orderId: sampleOrder.id, status: "delivered", note: "تم التوصيل" },
-      ]);
-    } catch {
-      console.log("⚠️ orderStatusLog skipped (not exists)");
-    }
-  }
+
 
   // =====================
   // STATS
@@ -248,13 +228,7 @@ async function seed() {
     .set({ totalOrders: 1 })
     .where(eq(stores.id, store.id));
 
-  await db
-    .update(drivers)
-    .set({
-      totalDeliveries: 1,
-      totalBalance: "500",
-    })
-    .where(eq(drivers.userId, driver.id));
+  // Driver stats are not stored on the drivers table in the current schema.
 
   // =====================
   // SETTINGS

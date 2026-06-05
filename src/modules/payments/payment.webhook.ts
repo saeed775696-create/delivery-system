@@ -28,7 +28,7 @@ export const handleLocalWalletWebhook = async (req: any, res: any) => {
 
     await db
       .update(orders)
-      .set({ status: "PAID" })
+      .set({ status: "accepted" })
       .where(eq(orders.id, payment[0].orderId));
 
     return res.status(200).send("OK");

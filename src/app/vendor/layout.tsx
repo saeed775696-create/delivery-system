@@ -121,7 +121,7 @@ export default async function VendorLayout({
             </p>
 
             <h3 className="font-bold text-slate-800 mt-1">
-              {session.name || "التاجر"}
+              {session.phone || "التاجر"}
             </h3>
           </div>
 
@@ -239,12 +239,12 @@ export default async function VendorLayout({
                     font-bold
                   "
                 >
-                  {(session.name || "T").charAt(0)}
+                  {(session.userId || session.phone || "T").charAt(0)}
                 </div>
 
                 <div className="hidden md:block">
                   <p className="text-sm font-bold text-slate-800">
-                    {session.name || "التاجر"}
+                    {session.userId || session.phone || "التاجر"}
                   </p>
 
                   <p className="text-xs text-slate-500">

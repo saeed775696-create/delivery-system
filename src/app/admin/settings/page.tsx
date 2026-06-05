@@ -34,9 +34,6 @@ export default async function AdminSettingsPage() {
               >
                 <div>
                   <p className="font-medium text-slate-700">{s.key}</p>
-                  {s.description && (
-                    <p className="text-sm text-slate-500">{s.description}</p>
-                  )}
                 </div>
                 <span className="font-mono text-sm text-slate-600 bg-slate-50 px-3 py-1 rounded">
                   {s.value}

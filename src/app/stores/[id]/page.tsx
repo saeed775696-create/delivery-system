@@ -61,7 +61,7 @@ export default async function StorePage({
   // Group products by category
   const productsByCategory = storeProducts.reduce(
     (acc, product) => {
-      const cat = product.category || "أخرى";
+      const cat = product.categoryId || "أخرى";
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(product);
       return acc;

@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { categories, products } from "@/db/schema";
+import { storeSections, products } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(req: Request) {
@@ -12,8 +12,8 @@ export async function GET(req: Request) {
 
   const cats = await db
     .select()
-    .from(categories)
-    .where(eq(categories.storeId, storeId));
+    .from(storeSections)
+    .where(eq(storeSections.storeId, storeId));
 
   const prods = await db.select().from(products);
 

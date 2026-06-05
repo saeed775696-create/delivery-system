@@ -1,11 +1,11 @@
 import { db } from "@/db";
-import { storeCategories } from "@/db/schema";
+import { storeSections } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   const { id } = await req.json();
 
-  await db.delete(storeCategories).where(eq(storeCategories.id, id));
+  await db.delete(storeSections).where(eq(storeSections.id, id));
 
   return Response.json({ success: true });
 }

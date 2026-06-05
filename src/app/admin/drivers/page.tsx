@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { drivers, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Card from "@/components/ui/Card";
-import { Truck, Star } from "lucide-react";
+import { Truck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +15,7 @@ async function getAllDrivers() {
         phone: users.phone,
         vehicleType: drivers.vehicleType,
         isAvailable: drivers.isAvailable,
-        ratingAvg: drivers.ratingAvg,
-        totalDeliveries: drivers.totalDeliveries,
-        totalBalance: drivers.totalBalance,
-        lastActive: drivers.lastActive,
+        licenseNumber: drivers.licenseNumber, // موجود في الجدول
       })
       .from(drivers)
       .innerJoin(users, eq(drivers.userId, users.id));
@@ -61,28 +58,12 @@ export default async function AdminDriversPage() {
                   {driver.isAvailable ? "متاح" : "مشغول"}
                 </span>
               </div>
-              <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-2 text-center text-sm">
-                <div>
-                  <p className="font-bold text-slate-700">{driver.totalDeliveries}</p>
-                  <p className="text-slate-500">توصيل</p>
-                </div>
-                <div>
-                  <p className="font-bold text-amber-500 flex items-center justify-center gap-1">
-                    <Star className="w-3 h-3 fill-current" />
-                    {driver.ratingAvg || "5.0"}
-                  </p>
-                  <p className="text-slate-500">تقييم</p>
-                </div>
-                <div>
-                  <p className="font-bold text-slate-700">
-                    {parseFloat(driver.totalBalance || "0").toLocaleString()}
-                  </p>
-                  <p className="text-slate-500">رصيد</p>
-                </div>
+              <div className="mt-4 pt-4 border-t text-center text-sm text-slate-500">
+                <p>🚧 الإحصائيات التفصيلية غير متاحة حالياً</p>
               </div>
               <div className="mt-3 text-xs text-slate-400">
                 {driver.vehicleType === "car" ? "سيارة" : "دراجة نارية"}
-                {driver.lastActive && ` · آخر نشاط: ${new Date(driver.lastActive).toLocaleString("ar-YE")}`}
+                {driver.licenseNumber && ` · رخصة: ${driver.licenseNumber}`}
               </div>
             </Card>
           ))

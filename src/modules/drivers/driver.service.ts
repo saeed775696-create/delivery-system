@@ -13,16 +13,12 @@ export class DriverService {
     return driver || null;
   }
 
-  static async updateLocation(
-    userId: string,
-    lat: number,
-    lng: number
-  ) {
+  static async updateLocation(userId: string, lat: number, lng: number) {
     const [updatedDriver] = await db
       .update(drivers)
       .set({
-        lastLat: lat != null ? String(lat) : null,
-        lastLng: lng != null ? String(lng) : null,
+        currentLat: lat != null ? String(lat) : null,
+        currentLng: lng != null ? String(lng) : null,
       })
       .where(eq(drivers.userId, userId))
       .returning();

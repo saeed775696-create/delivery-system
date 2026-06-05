@@ -55,6 +55,37 @@ export const paymentMethodEnum = pgEnum("payment_method", [
    USERS
 ========================= */
 
+
+export const customerDetails = pgTable("customer_details", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(), // واحد لواحد
+  savedAddresses: jsonb("saved_addresses").default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const drivers = pgTable("drivers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
+  vehicleType: vehicleTypeEnum("vehicle_type").default("motorcycle"),
+  isAvailable: boolean("is_available").default(false),
+  licenseNumber: varchar("license_number", { length: 50 }),
+  // 🆕 الأعمدة الجديدة
+  currentLat: decimal("current_lat", { precision: 10, scale: 7 }),
+  currentLng: decimal("current_lng", { precision: 10, scale: 7 }),
+  ratingAvg: decimal("rating_avg", { precision: 3, scale: 2 }).default("5.0"),
+  totalDeliveries: integer("total_deliveries").default(0),
+  totalBalance: decimal("total_balance", { precision: 12, scale: 2 }).default("0"),
+  lastActive: timestamp("last_active", { withTimezone: true }),
+
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   phone: varchar("phone", { length: 15 }).unique().notNull(),
@@ -65,41 +96,6 @@ export const users = pgTable("users", {
   fcmToken: text("fcm_token"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-/* =========================
-   CUSTOMER DETAILS
-========================= */
-
-export const customerDetails = pgTable("customer_details", {
-  userId: uuid("user_id")
-    .primaryKey()
-    .references(() => users.id, { onDelete: "cascade" }),
-
-  savedAddresses: jsonb("saved_addresses"),
-  defaultAddressId: varchar("default_address_id", { length: 50 }),
-});
-
-/* =========================
-   DRIVERS
-========================= */
-
-export const drivers = pgTable("drivers", {
-  userId: uuid("user_id")
-    .primaryKey()
-    .references(() => users.id, { onDelete: "cascade" }),
-
-  vehicleType: vehicleTypeEnum("vehicle_type").default("motorcycle"),
-  isAvailable: boolean("is_available").default(true),
-
-  currentLat: decimal("current_lat", { precision: 10, scale: 7 }),
-  currentLng: decimal("current_lng", { precision: 10, scale: 7 }),
-
-  totalBalance: decimal("total_balance", { precision: 10, scale: 2 }).default(
-    "0",
-  ),
-  ratingAvg: decimal("rating_avg", { precision: 2, scale: 1 }).default("5.0"),
-  totalDeliveries: integer("total_deliveries").default(0),
 });
 
 /* =========================
@@ -118,7 +114,7 @@ export const stores = pgTable("stores", {
 
   description: text("description"),
 
-  category: storeCategoryEnum("category").notNull().default("food"),
+  category: storeCategoryEnum("category").default("food"),
 
   lat: decimal("lat", { precision: 10, scale: 7 }),
   lng: decimal("lng", { precision: 10, scale: 7 }),
@@ -132,8 +128,6 @@ export const stores = pgTable("stores", {
 
   isOpen: boolean("is_open").default(true),
 
-  workingHours: jsonb("working_hours"),
-
   imageUrl: text("image_url"),
   phone: varchar("phone", { length: 15 }),
 
@@ -143,6 +137,22 @@ export const stores = pgTable("stores", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+/* =========================
+   STORE SECTIONS (MENU CATEGORIES)
+========================= */
+
+export const storeSections = pgTable("store_sections", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  storeId: uuid("store_id")
+    .references(() => stores.id, { onDelete: "cascade" })
+    .notNull(),
+
+  nameAr: varchar("name_ar", { length: 100 }).notNull(),
+  nameEn: varchar("name_en", { length: 100 }),
+
+  createdAt: timestamp("created_at").defaultNow(),
+});
 /* =========================
    PRODUCTS
 ========================= */
@@ -154,16 +164,19 @@ export const products = pgTable("products", {
     .references(() => stores.id, { onDelete: "cascade" })
     .notNull(),
 
+  categoryId: uuid("category_id").references(() => storeSections.id),
+
   nameAr: varchar("name_ar", { length: 100 }).notNull(),
   nameEn: varchar("name_en", { length: 100 }),
+
   description: text("description"),
 
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   discountPrice: decimal("discount_price", { precision: 10, scale: 2 }),
 
   imageUrl: text("image_url"),
-
   isAvailable: boolean("is_available").default(true),
+
   preparationTime: integer("preparation_time").default(15),
 
   createdAt: timestamp("created_at").defaultNow(),
@@ -204,43 +217,108 @@ export const orders = pgTable("orders", {
 });
 
 /* =========================
-   ORDER STATUS LOG (FIXED)
+   PAYMENTS (ONLY ONE)
 ========================= */
 
-export const orderStatusLog = pgTable("order_status_log", {
-  id: serial("id").primaryKey(),
+export const payments = pgTable("payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
 
   orderId: uuid("order_id")
     .references(() => orders.id, { onDelete: "cascade" })
     .notNull(),
 
-  status: orderStatusEnum("status").notNull(),
-  note: text("note"),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+
+  method: varchar("method", { length: 50 }).notNull(),
+
+  status: varchar("status", { length: 50 }).default("PENDING"),
+
+  referenceNumber: varchar("reference_number", { length: 100 }),
 
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 /* =========================
-   SETTINGS
+   NOTIFICATIONS (ONLY ONE)
 ========================= */
 
-export const settings = pgTable("settings", {
-  key: varchar("key", { length: 100 }).primaryKey(),
-  value: text("value"),
+export const notifications = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+
+  title: varchar("title", { length: 255 }).notNull(),
+  body: text("body"),
+
+  isRead: boolean("is_read").default(false),
+
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const settings = pgTable("settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  key: varchar("key", { length: 100 }).unique().notNull(),
+  value: text("value"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
 /* =========================
-   RELATIONS (optional)
+   RELATIONS
 ========================= */
 
 export const usersRelations = relations(users, ({ one }) => ({
-  customerDetails: one(customerDetails),
-  driver: one(drivers),
+  customerDetail: one(customerDetails, {
+    fields: [users.id],
+    references: [customerDetails.userId],
+  }),
+  driver: one(drivers, {
+    fields: [users.id],
+    references: [drivers.userId],
+  }),
+  // يمكنك إضافة store إذا كان فيندور (علاقة one-to-one مع stores عبر ownerId)
+  // store: one(stores, { fields: [users.id], references: [stores.ownerId] })
 }));
 
-export const ordersRelations = relations(orders, ({ one, many }) => ({
-  store: one(stores),
-  customer: one(users),
-  driver: one(users),
-  logs: many(orderStatusLog),
+export const customerDetailsRelations = relations(customerDetails, ({ one }) => ({
+  user: one(users, {
+    fields: [customerDetails.userId],
+    references: [users.id],
+  }),
+}));
+
+export const driversRelations = relations(drivers, ({ one }) => ({
+  user: one(users, {
+    fields: [drivers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const ordersRelations = relations(orders, ({ one }) => ({
+  store: one(stores, {
+    fields: [orders.storeId],
+    references: [stores.id],
+  }),
+  customer: one(users, {
+    fields: [orders.customerId],
+    references: [users.id],
+  }),
+  driver: one(users, {
+    fields: [orders.driverId],
+    references: [users.id],
+  }),
+}));
+
+// يمكنك أيضاً إضافة علاقة stores مع owner (المستخدم)
+export const storesRelations = relations(stores, ({ one }) => ({
+  owner: one(users, {
+    fields: [stores.ownerId],
+    references: [users.id],
+  }),
 }));

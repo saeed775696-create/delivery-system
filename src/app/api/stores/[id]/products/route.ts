@@ -68,7 +68,7 @@ export async function POST(
         description: validatedData.description,
         price: validatedData.price.toString(),
         discountPrice: validatedData.discountPrice?.toString(),
-        category: validatedData.category,
+        categoryId: validatedData.category,
         imageUrl: validatedData.imageUrl,
         isAvailable: validatedData.isAvailable,
         preparationTime: validatedData.preparationTime,

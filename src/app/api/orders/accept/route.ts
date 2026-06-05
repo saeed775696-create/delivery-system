@@ -9,11 +9,12 @@ export async function POST(req: Request) {
 
   const updated = await db
     .update(orders)
+    // cast to any because the generated orders type may not include the timestamp field
     .set({
       driverId,
       status: "accepted",
       acceptedAt: new Date(),
-    })
+    } as any)
     .where(eq(orders.id, orderId))
     .returning();
 

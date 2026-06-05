@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { storeCategories } from "@/db/schema";
+import { storeSections } from "@/db/schema";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const { storeId, nameAr } = body;
 
   const category = await db
-    .insert(storeCategories)
+    .insert(storeSections)
     .values({
       storeId,
       nameAr,
